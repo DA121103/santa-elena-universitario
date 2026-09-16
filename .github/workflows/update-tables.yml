@@ -1,0 +1,42 @@
+name: Actualizar tablas de posiciones
+
+on:
+  schedule:
+    # Todos los días a las 09:00 UTC (06:00 en Uruguay)
+    - cron: "0 9 * * *"
+  workflow_dispatch: {}
+    # Permite tocar "Run workflow" en la pestaña Actions de GitHub
+    # para probarlo manualmente sin esperar al horario.
+
+permissions:
+  contents: write
+
+jobs:
+  update-tables:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias
+        run: pip install requests beautifulsoup4
+
+      - name: Actualizar tablas
+        run: python scripts/update_tables.py
+
+      - name: Commit y push si hubo cambios
+        run: |
+          if [ -n "$(git status --porcelain index.html)" ]; then
+            git config user.name "Santa Elena Bot"
+            git config user.email "actions@users.noreply.github.com"
+            git add index.html
+            git commit -m "Actualización automática de tablas de posiciones"
+            git push
+          else
+            echo "Sin cambios, no hay nada que commitear."
+          fi
