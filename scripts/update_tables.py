@@ -137,26 +137,41 @@ def scrape_lud(url: str):
 
     rows = []
     for cells in raw_rows:
-        if len(cells) < 9:
+        # En vez de asumir posiciones fijas (Pos, Equipo, PJ...), que se
+        # desalinean si el sitio agrega una celda vacía (ej. el escudo del
+        # equipo sin texto), buscamos el nombre del equipo por CONTENIDO:
+        # es la primera celda que tiene letras. Los 8 números que vienen
+        # después son J, G, E, P, GF, GC, DG, Pts, ignorando cualquier
+        # celda vacía o no-numérica que se cuele en el medio.
+        equipo_idx = next((i for i, c in enumerate(cells) if re.search(r"[A-Za-zÁÉÍÓÚáéíóúÑñ]", c)), None)
+        if equipo_idx is None:
             continue
-        # esperamos: Pos, Equipo, PJ, G, E, P, GF, GC, DG, Pts (10 cols) —
-        # si el sitio agrega/saca una columna, esto puede desalinearse y
-        # el chequeo de más abajo (que "j" sea numérico) hace que la fila
-        # se descarte en vez de guardar basura.
-        try:
-            equipo = cells[-9]
-            j, g, e, p, gf, gc, dif, pts = cells[-8:]
-            int(_num(j))
-        except (ValueError, IndexError):
+        equipo = cells[equipo_idx].strip()
+        # tomamos todas las celdas numéricas de la fila (antes Y después
+        # del nombre, por si el sitio ordena las columnas distinto a lo
+        # esperado), salvo la primera celda de la fila que asumimos que es
+        # el número de posición/ranking y no una estadística.
+        nums = [
+            c for i, c in enumerate(cells)
+            if i != 0 and i != equipo_idx and re.fullmatch(r"-?\+?\d+", c.replace(" ", ""))
+        ]
+        if len(nums) < 8:
             continue
+        j, g, e, p, gf, gc, dif, pts = nums[:8]
         rows.append({
-            "equipo": equipo.strip(),
+            "equipo": equipo,
             "j": _num(j), "g": _num(g), "e": _num(e), "p": _num(p),
             "gf": _num(gf), "gc": _num(gc), "dif": _num(dif), "pts": _num(pts),
         })
 
     if not rows:
         raise RuntimeError("La tabla de LUD se encontró pero no pude leer ninguna fila de datos (revisar formato).")
+    if not any(_is_our_team(r["equipo"]) for r in rows):
+        raise RuntimeError(
+            f"Leí una tabla de {len(rows)} equipos pero 'Santa Elena' no está en ninguno — "
+            f"probablemente agarré la tabla equivocada de la página. No guardo esto. "
+            f"Equipos leídos: {', '.join(r['equipo'] for r in rows[:5])}..."
+        )
     return rows
 
 
