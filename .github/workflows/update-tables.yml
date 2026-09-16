@@ -24,7 +24,9 @@ jobs:
           python-version: "3.12"
 
       - name: Instalar dependencias
-        run: pip install requests beautifulsoup4
+        run: |
+          pip install requests beautifulsoup4 playwright
+          playwright install --with-deps chromium
 
       - name: Actualizar tablas
         run: python scripts/update_tables.py
