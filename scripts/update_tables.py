@@ -214,11 +214,42 @@ def scrape_mgc(url: str, categoria: str = "D"):
             page.goto(url, wait_until="networkidle", timeout=45000)
             page.wait_for_timeout(1500)
 
-            # Filtro de categoría (botón con el texto exacto, ej "D")
-            try:
-                page.get_by_text(categoria, exact=True).first.click(timeout=8000)
-            except Exception:
-                pass  # si no lo encuentra, seguimos con lo que haya cargado por defecto
+            # Filtro de categoría (botón con el texto exacto, ej "D"). En vez
+            # de clickear el primer elemento que diga "D" en toda la página
+            # (puede haber varios y agarrar el equivocado), primero
+            # identificamos el grupo real de botones de categoría: el
+            # conjunto de elementos hermanos entre sí cuyo texto es
+            # exactamente una de las categorías conocidas (A, B, C, D...),
+            # y clickeamos "D" solo dentro de ese grupo.
+            clicked = page.evaluate(
+                """
+                (categoria) => {
+                  const knownCats = ['A','B','C','D','E','F','G','+30','Jueves','Sub15'];
+                  const all = Array.from(document.querySelectorAll('body *'));
+                  const candidates = all.filter(el =>
+                    el.children.length === 0 && knownCats.includes(el.textContent.trim())
+                  );
+                  const byParent = new Map();
+                  candidates.forEach(el => {
+                    const p = el.parentElement;
+                    if (!p) return;
+                    if (!byParent.has(p)) byParent.set(p, []);
+                    byParent.get(p).push(el);
+                  });
+                  let bestParent = null, bestCount = 0;
+                  for (const [p, els] of byParent.entries()) {
+                    if (els.length > bestCount) { bestCount = els.length; bestParent = p; }
+                  }
+                  if (!bestParent || bestCount < 3) return false;
+                  const target = byParent.get(bestParent).find(el => el.textContent.trim() === categoria);
+                  if (target) { target.click(); return true; }
+                  return false;
+                }
+                """,
+                categoria,
+            )
+            if not clicked:
+                print(f"[warn] no pude ubicar con certeza el botón de categoría '{categoria}'", file=sys.stderr)
 
             # Pestaña "Posiciones" (puede que ya esté activa por defecto)
             try:
@@ -245,6 +276,13 @@ def scrape_mgc(url: str, categoria: str = "D"):
 
     if not rows:
         raise RuntimeError("La tabla de Montevideo Girls Cup se encontró pero no pude leer ninguna fila de datos.")
+    if not any(_is_our_team(r["equipo"]) for r in rows):
+        raise RuntimeError(
+            f"Leí una tabla de {len(rows)} equipos pero 'Santa Elena' no está en ninguno — "
+            f"probablemente el filtro de categoría '{categoria}' clickeó mal. No guardo esto "
+            f"para no pisar la tabla con datos de otra divisional. Equipos leídos: "
+            f"{', '.join(r['equipo'] for r in rows[:5])}..."
+        )
     return rows
 
 
