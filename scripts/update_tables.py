@@ -165,40 +165,43 @@ def scrape_lud(url: str):
 # la pestaña "Posiciones" antes de leer la tabla.
 # ---------------------------------------------------------------------------
 
-def _extract_generic_rows(page, header_text: str):
-    """Para tablas armadas con <div>/CSS grid en vez de <table> real (típico
-    en apps de React). Busca el elemento "hoja" (sin hijos) cuyo texto sea
-    exactamente header_text (p.ej. "EQUIPO"), sube al contenedor de esa fila
-    de encabezado, y junta el resto de las filas hermanas como filas de
-    datos, separando el texto visible de cada una en "celdas" por línea."""
-    return page.evaluate(
-        """
-        (headerText) => {
-          const all = Array.from(document.querySelectorAll('body *'));
-          const headerCell = all.find(el =>
-            el.children.length === 0 &&
-            el.textContent.trim().toUpperCase() === headerText.toUpperCase()
-          );
-          if (!headerCell) return null;
-          // subimos hasta encontrar un elemento cuyo padre tenga varios
-          // hijos "parecidos" (misma etiqueta/clase) - ahí está la fila
-          let headerRow = headerCell;
-          for (let i = 0; i < 4 && headerRow.parentElement; i++) {
-            const parent = headerRow.parentElement;
-            const siblings = Array.from(parent.children);
-            if (siblings.length >= 3) { headerRow = headerRow; break; }
-            headerRow = parent;
-          }
-          const rowsContainer = headerRow.parentElement;
-          if (!rowsContainer) return null;
-          const rowEls = Array.from(rowsContainer.children);
-          return rowEls.map(row =>
-            row.innerText.split('\\n').map(s => s.trim()).filter(Boolean)
-          );
-        }
-        """,
-        header_text,
-    )
+def _parse_rows_from_text(lines, n_numeric_cols: int, header_word: str):
+    """Método a prueba de balas para tablas armadas con <div>/CSS grid (sin
+    <table> real), típico en apps de React: en vez de navegar el DOM, toma
+    el texto VISIBLE de la página línea por línea y busca el patrón
+    "posición (número chico) -> nombre de equipo (texto) -> N números
+    seguidos" repetido. No le importa qué etiqueta HTML se usó, solo el
+    orden en que se lee la pantalla.
+    """
+    # arrancamos después de la última vez que aparece la palabra de
+    # encabezado (ej. "PTS"), para no confundir el encabezado con datos
+    start = 0
+    for i, l in enumerate(lines):
+        if l.strip().upper() == header_word.upper():
+            start = i + 1
+    data = [l.strip() for l in lines[start:] if l.strip()]
+
+    def is_pos(s):
+        return bool(re.fullmatch(r"[🏆🥇🥈🥉#]*\s*\d{1,3}", s))
+
+    def is_num(s):
+        return bool(re.fullmatch(r"[+-]?\d{1,4}", s.replace(" ", "")))
+
+    rows = []
+    i = 0
+    while i < len(data):
+        if is_pos(data[i]) and i + 1 + n_numeric_cols < len(data) + 1:
+            equipo = data[i + 1] if i + 1 < len(data) else None
+            nums = data[i + 2: i + 2 + n_numeric_cols]
+            if (
+                equipo and not is_pos(equipo) and not is_num(equipo)
+                and len(nums) == n_numeric_cols and all(is_num(n) for n in nums)
+            ):
+                rows.append([equipo] + nums)
+                i += 2 + n_numeric_cols
+                continue
+        i += 1
+    return rows
 
 
 def scrape_mgc(url: str, categoria: str = "D"):
@@ -224,38 +227,20 @@ def scrape_mgc(url: str, categoria: str = "D"):
                 pass
 
             page.wait_for_timeout(1500)
-
-            # Primero probamos con <table> real, y si no hay, con el método
-            # genérico para tablas armadas con <div>.
-            try:
-                raw_rows = _extract_table_rows(page, min_cols=4)
-            except Exception:
-                raw_rows = None
-
-            if not raw_rows:
-                raw_rows = _extract_generic_rows(page, "EQUIPO")
-                if not raw_rows:
-                    raise RuntimeError(
-                        "No encontré la tabla ni con <table> ni con el método genérico "
-                        "(puede que cambiara el texto del encabezado 'EQUIPO')."
-                    )
-                # sacamos la fila de encabezado si quedó incluida
-                raw_rows = [r for r in raw_rows if r and r[0].strip().upper() != "EQUIPO"]
+            body_text = page.inner_text("body")
         finally:
             browser.close()
 
+    lines = body_text.split("\n")
+    parsed = _parse_rows_from_text(lines, n_numeric_cols=3, header_word="PTS")
+    if not parsed:
+        raise RuntimeError(
+            "Encontré la página pero no pude reconocer el patrón de la tabla en el texto "
+            "(#, equipo, PJ, +/-, PTS). Puede que cambiara el formato del sitio."
+        )
+
     rows = []
-    for cells in raw_rows:
-        if len(cells) < 4:
-            continue
-        # esperamos: #, Equipo, PJ, +/-, Pts (5 cols, la primera puede traer
-        # un ícono de trofeo pegado al número en el top 3)
-        try:
-            equipo = cells[-4]
-            pj, dif, pts = cells[-3:]
-            int(_num(pj))
-        except (ValueError, IndexError):
-            continue
+    for equipo, pj, dif, pts in parsed:
         rows.append({"equipo": equipo.strip(), "pj": _num(pj), "dif": dif.strip(), "pts": _num(pts)})
 
     if not rows:
