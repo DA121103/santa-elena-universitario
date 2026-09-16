@@ -38,10 +38,17 @@ HEADERS = {
 }
 
 OUR_TEAM_MARKERS = ["santa elena"]
+# "Santa Elena Lagomar" es OTRO club (comparte el nombre "Santa Elena" de
+# pura coincidencia) - hay que excluirlo explícitamente para no confundirlo
+# con el nuestro (Colegio Santa Elena / Santa Elena U / Santa Elena
+# Universitario).
+OUR_TEAM_EXCLUDE = ["lagomar"]
 
 
 def _is_our_team(name: str) -> bool:
     n = name.strip().lower()
+    if any(x in n for x in OUR_TEAM_EXCLUDE):
+        return False
     return any(marker in n for marker in OUR_TEAM_MARKERS)
 
 
