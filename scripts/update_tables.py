@@ -165,6 +165,42 @@ def scrape_lud(url: str):
 # la pestaña "Posiciones" antes de leer la tabla.
 # ---------------------------------------------------------------------------
 
+def _extract_generic_rows(page, header_text: str):
+    """Para tablas armadas con <div>/CSS grid en vez de <table> real (típico
+    en apps de React). Busca el elemento "hoja" (sin hijos) cuyo texto sea
+    exactamente header_text (p.ej. "EQUIPO"), sube al contenedor de esa fila
+    de encabezado, y junta el resto de las filas hermanas como filas de
+    datos, separando el texto visible de cada una en "celdas" por línea."""
+    return page.evaluate(
+        """
+        (headerText) => {
+          const all = Array.from(document.querySelectorAll('body *'));
+          const headerCell = all.find(el =>
+            el.children.length === 0 &&
+            el.textContent.trim().toUpperCase() === headerText.toUpperCase()
+          );
+          if (!headerCell) return null;
+          // subimos hasta encontrar un elemento cuyo padre tenga varios
+          // hijos "parecidos" (misma etiqueta/clase) - ahí está la fila
+          let headerRow = headerCell;
+          for (let i = 0; i < 4 && headerRow.parentElement; i++) {
+            const parent = headerRow.parentElement;
+            const siblings = Array.from(parent.children);
+            if (siblings.length >= 3) { headerRow = headerRow; break; }
+            headerRow = parent;
+          }
+          const rowsContainer = headerRow.parentElement;
+          if (!rowsContainer) return null;
+          const rowEls = Array.from(rowsContainer.children);
+          return rowEls.map(row =>
+            row.innerText.split('\\n').map(s => s.trim()).filter(Boolean)
+          );
+        }
+        """,
+        header_text,
+    )
+
+
 def scrape_mgc(url: str, categoria: str = "D"):
     from playwright.sync_api import sync_playwright
 
@@ -188,7 +224,23 @@ def scrape_mgc(url: str, categoria: str = "D"):
                 pass
 
             page.wait_for_timeout(1500)
-            raw_rows = _extract_table_rows(page, min_cols=4)
+
+            # Primero probamos con <table> real, y si no hay, con el método
+            # genérico para tablas armadas con <div>.
+            try:
+                raw_rows = _extract_table_rows(page, min_cols=4)
+            except Exception:
+                raw_rows = None
+
+            if not raw_rows:
+                raw_rows = _extract_generic_rows(page, "EQUIPO")
+                if not raw_rows:
+                    raise RuntimeError(
+                        "No encontré la tabla ni con <table> ni con el método genérico "
+                        "(puede que cambiara el texto del encabezado 'EQUIPO')."
+                    )
+                # sacamos la fila de encabezado si quedó incluida
+                raw_rows = [r for r in raw_rows if r and r[0].strip().upper() != "EQUIPO"]
         finally:
             browser.close()
 
