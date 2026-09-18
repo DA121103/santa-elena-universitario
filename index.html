@@ -982,47 +982,40 @@
   <div class="container">
     <div class="section-head">
       <h2>Este fin de semana</h2>
-      <span class="section-note">Sábado 12 al domingo 13 de septiembre</span>
+      <span class="section-note">Jueves 17 al domingo 20 de septiembre</span>
     </div>
     <div class="fixture-grid">
       <div class="fixture-day">
-        <h3 class="fixture-day-title">Sábado 12</h3>
-        <div class="fixture-match">
-          <span class="fixture-cat">Reserva</span>
-          <div class="fixture-info"><span class="fixture-time tabnum">11:15</span><span class="fixture-rival">vs San Juan Bautista</span></div>
-          <span class="fixture-venue">Complejo Arrayanes</span>
-        </div>
+        <h3 class="fixture-day-title">Jueves 17</h3>
         <div class="fixture-match">
           <span class="fixture-cat">Sub 20</span>
-          <div class="fixture-info"><span class="fixture-time tabnum">15:30</span><span class="fixture-rival">vs Isasa Universitario</span></div>
+          <div class="fixture-info"><span class="fixture-time tabnum">20:00</span><span class="fixture-rival">vs Crandon Universitario</span></div>
           <span class="fixture-venue">Complejo Arrayanes</span>
+        </div>
+      </div>
+      <div class="fixture-day">
+        <h3 class="fixture-day-title">Sábado 19</h3>
+        <div class="fixture-match">
+          <span class="fixture-cat">Reserva</span>
+          <div class="fixture-info"><span class="fixture-time tabnum">11:15</span><span class="fixture-rival">vs Urunday Universitario</span></div>
+          <span class="fixture-venue">Complejo Urunday Universitario</span>
         </div>
         <div class="fixture-match">
           <span class="fixture-cat">Femenino</span>
-          <div class="fixture-info"><span class="fixture-time tabnum">17:00</span><span class="fixture-rival">vs UCU Azul</span></div>
+          <div class="fixture-info"><span class="fixture-time tabnum">13:00</span><span class="fixture-rival">vs Berracas</span></div>
           <span class="fixture-venue">Polideportivo Carrasco</span>
         </div>
         <div class="fixture-match">
           <span class="fixture-cat handball">Handball</span>
-          <div class="fixture-info"><span class="fixture-time tabnum">18:45</span><span class="fixture-rival">vs Isasa U</span></div>
+          <div class="fixture-info"><span class="fixture-time tabnum">20:00</span><span class="fixture-rival">vs Seminario</span></div>
           <span class="fixture-venue">Gimnasio Plaza N.° 12</span>
         </div>
       </div>
       <div class="fixture-day">
-        <h3 class="fixture-day-title">Domingo 13</h3>
+        <h3 class="fixture-day-title">Domingo 20</h3>
         <div class="fixture-match">
           <span class="fixture-cat">Mayores</span>
-          <div class="fixture-info"><span class="fixture-time tabnum">9:00</span><span class="fixture-rival">vs Club Social Piedras Blancas</span></div>
-          <span class="fixture-venue">Complejo Trafford (Camino Repetto)</span>
-        </div>
-        <div class="fixture-match">
-          <span class="fixture-cat">Sub 16</span>
-          <div class="fixture-info"><span class="fixture-time tabnum">13:30</span><span class="fixture-rival">vs Scuola Palermo</span></div>
-          <span class="fixture-venue">Complejo Arrayanes</span>
-        </div>
-        <div class="fixture-match">
-          <span class="fixture-cat">Sub 18</span>
-          <div class="fixture-info"><span class="fixture-time tabnum">15:30</span><span class="fixture-rival">vs Scuola Palermo</span></div>
+          <div class="fixture-info"><span class="fixture-time tabnum">11:15</span><span class="fixture-rival">vs San Pablo Universitario</span></div>
           <span class="fixture-venue">Complejo Arrayanes</span>
         </div>
       </div>
@@ -1083,7 +1076,7 @@
     <div class="card match-card" style="margin-bottom:30px;">
       <div class="match-card-top">
         <span><strong>Próximo partido</strong>, <span id="mcCat">Mayores</span></span>
-        <span id="mcDay">Domingo 13/9</span>
+        <span id="mcDay">Domingo 20/9</span>
       </div>
       <div class="match-teams">
         <div class="match-team">
@@ -1092,13 +1085,13 @@
         </div>
         <span class="match-vs">VS</span>
         <div class="match-team">
-          <div class="team-crest rival" id="mcRivalCrest">PB</div>
-          <span id="mcRival">Club Social Piedras Blancas</span>
+          <div class="team-crest rival" id="mcRivalCrest">SP</div>
+          <span id="mcRival">San Pablo Universitario</span>
         </div>
       </div>
       <div class="match-meta">
-        <span><strong class="tabnum" id="mcTime">9:00</strong> hs</span>
-        <span>Cancha <strong id="mcVenue">Complejo Trafford (Camino Repetto)</strong></span>
+        <span><strong class="tabnum" id="mcTime">11:15</strong> hs</span>
+        <span>Cancha <strong id="mcVenue">Complejo Arrayanes</strong></span>
       </div>
     </div>
 
@@ -2245,13 +2238,13 @@
     var tabs = document.querySelectorAll('.tab-btn');
     var panels = document.querySelectorAll('.table-panel');
     var NEXT_MATCH = {
-      mayores: {cat:'Mayores', day:'Domingo 13/9', time:'9:00', rival:'Club Social Piedras Blancas', crest:'PB', venue:'Complejo Trafford (Camino Repetto)'},
-      reserva: {cat:'Reserva', day:'Sábado 12/9', time:'11:15', rival:'San Juan Bautista', crest:'SJ', venue:'Complejo Arrayanes'},
-      sub20:   {cat:'Sub 20', day:'Sábado 12/9', time:'15:30', rival:'Isasa Universitario', crest:'IU', venue:'Complejo Arrayanes'},
+      mayores: {cat:'Mayores', day:'Domingo 20/9', time:'11:15', rival:'San Pablo Universitario', crest:'SP', venue:'Complejo Arrayanes'},
+      reserva: {cat:'Reserva', day:'Sábado 19/9', time:'11:15', rival:'Urunday Universitario', crest:'UU', venue:'Complejo Urunday Universitario'},
+      sub20:   {cat:'Sub 20', day:'Jueves 17/9', time:'20:00', rival:'Crandon Universitario', crest:'CU', venue:'Complejo Arrayanes'},
       sub18:   {cat:'Sub 18', day:'Domingo 13/9', time:'15:30', rival:'Scuola Palermo', crest:'SP', venue:'Complejo Arrayanes'},
       sub16:   {cat:'Sub 16', day:'Domingo 13/9', time:'13:30', rival:'Scuola Palermo', crest:'SP', venue:'Complejo Arrayanes'},
-      femenino:{cat:'Fútbol Femenino', day:'Sábado 12/9', time:'17:00', rival:'UCU Azul', crest:'UA', venue:'Polideportivo Carrasco'},
-      handball:{cat:'Handball', day:'Sábado 12/9', time:'18:45', rival:'Isasa U', crest:'IU', venue:'Gimnasio Plaza N.° 12'}
+      femenino:{cat:'Fútbol Femenino', day:'Sábado 19/9', time:'13:00', rival:'Berracas', crest:'BE', venue:'Polideportivo Carrasco'},
+      handball:{cat:'Handball', day:'Sábado 19/9', time:'20:00', rival:'Seminario', crest:'SE', venue:'Gimnasio Plaza N.° 12'}
     };
     function paintMatch(cat){
       var m = NEXT_MATCH[cat];
