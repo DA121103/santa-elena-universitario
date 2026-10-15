@@ -355,9 +355,9 @@ def update_block(html: str, block_name: str, rows_html: str) -> str:
 
 SOURCES = {
     "handball": {"fn": scrape_acb, "args": ("https://www.acb.com.uy/web/liga-mayor-b-2026/",), "build": build_rows_html_10},
-    "mayores": {"fn": scrape_lud, "args": ("https://lud-stats.vercel.app/?phase=3",), "build": build_rows_html_10},
-    "reserva": {"fn": scrape_lud, "args": ("https://lud-stats.vercel.app/?phase=9",), "build": build_rows_html_10},
-    "sub20": {"fn": scrape_lud, "args": ("https://lud-stats.vercel.app/?phase=24",), "build": build_rows_html_10},
+    "mayores": {"fn": scrape_lud, "args": ("https://lud-stats.vercel.app/?phase=44",), "build": build_rows_html_10},
+    "reserva": {"fn": scrape_lud, "args": ("https://lud-stats.vercel.app/?phase=57",), "build": build_rows_html_10},
+    "sub20": {"fn": scrape_lud, "args": ("https://lud-stats.vercel.app/?phase=80",), "build": build_rows_html_10},
     "sub18": {"fn": scrape_lud, "args": ("https://lud-stats.vercel.app/?phase=28",), "build": build_rows_html_10},
     "sub16": {"fn": scrape_lud, "args": ("https://lud-stats.vercel.app/?phase=34",), "build": build_rows_html_10},
     "femenino": {"fn": scrape_mgc, "args": ("https://montevideogirlscup.uy/ranking", "D"), "build": build_rows_html_5},
